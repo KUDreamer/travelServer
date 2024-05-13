@@ -10,4 +10,6 @@ public class TravelServerApplication {
 		SpringApplication.run(TravelServerApplication.class, args);
 	}
 
+	
+
 }
