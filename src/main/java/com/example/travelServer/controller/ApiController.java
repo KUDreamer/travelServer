@@ -3,9 +3,13 @@ package com.example.travelServer.controller;
 import com.example.travelServer.config.AppConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.http.ResponseEntity;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -75,5 +79,52 @@ public class ApiController {
         String result = restTemplate.getForObject(url, String.class);
 
         return ResponseEntity.ok(result);
+    }
+
+    //열차나 도보만 가능한 길찾기 기능
+    //포함해야 하는 건 json 파일
+    //{
+    //  "origin": "Humberto Delgado Airport, Portugal",
+    //  "destination": "Basílica of Estrela, Praça da Estrela, 1200-667 Lisboa, Portugal"
+    //}
+    //위와 같이 body에 포함해야 함.
+    //일단은 String 타입의 이름으로 하였으나, 요청하면 placeid와 같이 더 정확한 버전 만들 수 있음
+    @PostMapping("/directions")
+    public String getDirections(@RequestBody Map<String, String> request) {
+        String api_key = appConfig.getApiKey();
+        String url = "https://routes.googleapis.com/directions/v2:computeRoutes";
+
+
+        String origin = request.get("origin");
+        String destination = request.get("destination");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.set("X-Goog-Api-Key", api_key);
+        headers.set("X-Goog-FieldMask", "routes.legs.steps.transitDetails");
+
+        Map<String, Object> requestBody = new HashMap<>();
+        Map<String, Object> originMap = new HashMap<>();
+        originMap.put("address", origin);
+        requestBody.put("origin", originMap);
+
+        Map<String, Object> destinationMap = new HashMap<>();
+        destinationMap.put("address", destination);
+        requestBody.put("destination", destinationMap);
+
+        requestBody.put("travelMode", "TRANSIT");
+        requestBody.put("computeAlternativeRoutes", true);
+
+        Map<String, Object> transitPreferences = new HashMap<>();
+        transitPreferences.put("routingPreference", "LESS_WALKING");
+        transitPreferences.put("allowedTravelModes", Collections.singletonList("TRAIN"));
+        requestBody.put("transitPreferences", transitPreferences);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+
+        return response.getBody();
     }
 }
