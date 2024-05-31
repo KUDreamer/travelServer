@@ -87,7 +87,7 @@ public class ApiController {
     //  "origin": "Humberto Delgado Airport, Portugal",
     //  "destination": "Basílica of Estrela, Praça da Estrela, 1200-667 Lisboa, Portugal"
     //}
-    //위와 같이 body에 포함해야 함.
+    //위와 같은 형식으로 raw 파일의 json 형식으로 body에 담아서 post 요청해야 함
     //일단은 String 타입의 이름으로 하였으나, 요청하면 placeid와 같이 더 정확한 버전 만들 수 있음
     @PostMapping("/directions")
     public String getDirections(@RequestBody Map<String, String> request) {
