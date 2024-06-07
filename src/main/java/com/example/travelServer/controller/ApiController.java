@@ -42,7 +42,7 @@ public class ApiController {
     @PostMapping("/searchPlaceInfo")
     public ResponseEntity<String> searchPlaceInfo(@RequestParam String query){
         String api_url = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json";
-        String fields = "name,formatted_address,rating,photos";
+        String fields = "name,formatted_address,rating,photos,business_status,opening_hours,user_ratings_total";
         String language = "ko";
         String input = query;
         String inputtype = "textquery";
