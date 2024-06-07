@@ -23,6 +23,7 @@ public class ApiController {
 
 
     //PLACE_ID를 통해 장소 세부 정보 받기
+    //작성 예: http://localhost:8080/api/giveInfo?PLACE_ID=ChIJN1t_tDeuEmsRUsoyG83frY4%26
     @GetMapping("/giveInfo")
     public ResponseEntity<String> getInfo(@RequestParam String PLACE_ID) {
         String api_url = "https://maps.googleapis.com/maps/api/place/details/json";
@@ -39,6 +40,7 @@ public class ApiController {
     }
 
     //장소 1개에 대한 검색 결과, 근데 조금 기준을 모르겠어서 보류
+    //작성예: http://localhost:8080/api/searchPlaceInfo?query=중국 음식
     @PostMapping("/searchPlaceInfo")
     public ResponseEntity<String> searchPlaceInfo(@RequestParam String query){
         String api_url = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json";
@@ -57,6 +59,7 @@ public class ApiController {
 
     //검색기능.
     //애는 디폴트값으로 50000m를 탐색하고 모든 필드를 반환
+    //http://localhost:8080/api/searchByTextInfo?query=중국집
     @PostMapping("/searchByTextInfo")
     public ResponseEntity<String> searchByTextInfo(@RequestParam String query){
         String api_url = "https://maps.googleapis.com/maps/api/place/textsearch/json";
@@ -82,7 +85,8 @@ public class ApiController {
     }
 
     //열차나 도보만 가능한 길찾기 기능
-    //포함해야 하는 건 json 파일
+    //작성예: http://localhost:8080/api/directions
+    //다만 body에 아래 형식의 json 파일을 포함해야 함
     //{
     //  "origin": "Humberto Delgado Airport, Portugal",
     //  "destination": "Basílica of Estrela, Praça da Estrela, 1200-667 Lisboa, Portugal"
