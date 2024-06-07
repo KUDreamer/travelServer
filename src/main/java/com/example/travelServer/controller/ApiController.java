@@ -1,6 +1,7 @@
 package com.example.travelServer.controller;
 
 import com.example.travelServer.config.AppConfig;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -9,7 +10,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -17,6 +20,9 @@ public class ApiController {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     private AppConfig appConfig;
@@ -85,7 +91,7 @@ public class ApiController {
     }
 
     //열차나 도보만 가능한 길찾기 기능
-    //작성예: http://localhost:8080/api/directions
+    //작성예: http://localhost:8080/api/directionsTrain
     //다만 body에 아래 형식의 json 파일을 포함해야 함
     //{
     //  "origin": "Humberto Delgado Airport, Portugal",
@@ -93,8 +99,8 @@ public class ApiController {
     //}
     //위와 같은 형식으로 raw 파일의 json 형식으로 body에 담아서 post 요청해야 함
     //일단은 String 타입의 이름으로 하였으나, 요청하면 placeid와 같이 더 정확한 버전 만들 수 있음
-    @PostMapping("/directions")
-    public String getDirections(@RequestBody Map<String, String> request) {
+    @PostMapping("/directionsTrain")
+    public String getDirectionsTrain(@RequestBody Map<String, String> request) {
         String api_key = appConfig.getApiKey();
         String url = "https://routes.googleapis.com/directions/v2:computeRoutes";
 
@@ -124,6 +130,129 @@ public class ApiController {
         transitPreferences.put("routingPreference", "LESS_WALKING");
         transitPreferences.put("allowedTravelModes", Collections.singletonList("TRAIN"));
         requestBody.put("transitPreferences", transitPreferences);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+
+        return response.getBody();
+    }
+
+
+
+    @PostMapping("/directions")
+    public String getDirections(@RequestBody Map<String, Object> request) {
+        try {
+            String api_key = appConfig.getApiKey();
+
+            String url = "https://routes.googleapis.com/directions/v2:computeRoutes";
+
+            Map<String, Object> origin = (Map<String, Object>) request.get("origin");
+            Map<String, Object> destination = (Map<String, Object>) request.get("destination");
+            List<Map<String, Object>> intermediates = (List<Map<String, Object>>) request.get("intermediates");
+            String travelMode = (String) request.get("travelMode");
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+            headers.set("X-Goog-Api-Key", api_key);
+            headers.set("X-Goog-FieldMask", "routes.duration,routes.distanceMeters,routes.legs,geocodingResults");
+
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("origin", origin);
+            requestBody.put("destination", destination);
+            requestBody.put("travelMode", travelMode);
+
+            List<Map<String, Object>> intermediatePoints = intermediates.stream()
+                    .map(intermediate -> {
+                        Map<String, Object> point = new HashMap<>();
+                        if (intermediate.containsKey("address")) {
+                            point.put("address", intermediate.get("address"));
+                        } else if (intermediate.containsKey("location")) {
+                            point.put("location", intermediate.get("location"));
+                        }
+                        return point;
+                    })
+                    .collect(Collectors.toList());
+
+            requestBody.put("intermediates", intermediatePoints);
+
+            String jsonRequestBody = objectMapper.writeValueAsString(requestBody);
+
+            HttpEntity<String> entity = new HttpEntity<>(jsonRequestBody, headers);
+
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+
+
+
+            return response.getBody();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error occurred: " + e.getMessage();
+        }
+    }
+
+    //입력된 경유지들의 최적화된 경로를 반환해줌
+    //작성예: http://localhost:8080/api/directionsDrive
+    //포함해야 할 json body는 아래의 형식과 같음
+//    {
+//        "origin": "Adelaide,SA",
+//            "destination": "Adelaide,SA",
+//            "intermediates": [
+//        "Barossa+Valley,SA",
+//                "Clare,SA",
+//                "Connawarra,SA",
+//                "McLaren+Vale,SA"
+//    ]
+//    }
+//    {
+//        "routes": [
+//        {
+//            "optimizedIntermediateWaypointIndex": [
+//            3,
+//                    2,
+//                    0,
+//                    1
+//      ]
+//        }
+//  ]
+
+    //반환된 형식은 위와 같이 반환됨
+    @PostMapping("/wayOptimization")
+    public String getDirectionsDrive(@RequestBody Map<String, Object> request) {
+        String api_key = appConfig.getApiKey();
+        String url = "https://routes.googleapis.com/directions/v2:computeRoutes";
+
+        String origin = (String) request.get("origin");
+        String destination = (String) request.get("destination");
+        List<String> intermediates = (List<String>) request.get("intermediates");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.set("X-Goog-Api-Key", api_key);
+        headers.set("X-Goog-FieldMask", "routes.optimizedIntermediateWaypointIndex");
+
+        Map<String, Object> requestBody = new HashMap<>();
+        Map<String, Object> originMap = new HashMap<>();
+        originMap.put("address", origin);
+        requestBody.put("origin", originMap);
+
+        Map<String, Object> destinationMap = new HashMap<>();
+        destinationMap.put("address", destination);
+        requestBody.put("destination", destinationMap);
+
+        List<Map<String, String>> intermediatePoints = intermediates.stream()
+                .map(address -> {
+                    Map<String, String> point = new HashMap<>();
+                    point.put("address", address);
+                    return point;
+                })
+                .collect(Collectors.toList());
+
+        requestBody.put("intermediates", intermediatePoints);
+        requestBody.put("travelMode", "DRIVE");
+        requestBody.put("optimizeWaypointOrder", "true");
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
