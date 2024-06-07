@@ -58,6 +58,7 @@ public class ApiController {
         String url = String.format("%s?fields=%s&language=%s&input=%s&inputtype=%s&key=%s",api_url, fields,language,input, inputtype, api_key);
 
         String result = restTemplate.getForObject(url, String.class);
+        System.out.println(query);
 
         return ResponseEntity.ok(result);
     }
@@ -67,7 +68,7 @@ public class ApiController {
     //애는 디폴트값으로 50000m를 탐색하고 모든 필드를 반환
     //http://localhost:8080/api/searchByTextInfo?query=중국집
     @PostMapping("/searchByTextInfo")
-    public ResponseEntity<String> searchByTextInfo(@RequestParam String query){
+    public ResponseEntity<String> searchByTextInfo(@RequestParam("query") String query, @RequestParam("place_type") String place_type){
         String api_url = "https://maps.googleapis.com/maps/api/place/textsearch/json";
         //검색어
         String textQuery = query;
@@ -78,9 +79,11 @@ public class ApiController {
         String language = "ko";
 
         //검색되는 타입 설정 가능
-        String type = "restaurant";
+//        String type = "restaurant";
+        String type = place_type;
 
         String api_key = appConfig.getApiKey();
+
 
         String url = String.format("%s?query=%s&language=%s&type=%s&key=%s",
                 api_url,textQuery,language,type,api_key);
