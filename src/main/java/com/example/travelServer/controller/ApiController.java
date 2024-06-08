@@ -1,13 +1,17 @@
 package com.example.travelServer.controller;
 
 import com.example.travelServer.config.AppConfig;
+import com.example.travelServer.service.GooglePlacesService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +30,9 @@ public class ApiController {
 
     @Autowired
     private AppConfig appConfig;
+
+    @Autowired
+    private GooglePlacesService googlePlacesService;
 
 
     //PLACE_ID를 통해 장소 세부 정보 받기
@@ -141,6 +148,25 @@ public class ApiController {
         return response.getBody();
     }
 
+    //작성예시: http://localhost:8080/api/place-info?
+    // photoReference=AUGGfZnSHjsfLCLJogZWwe5Jrfwae_VUhGDiYszJmPNNHzWQG58_HwAk122fH0FMhEcs1rz6Ny9cm_KgTbSW6_7g7B3t2KntyM7F53F-ElET4Tr3EzOPpYcfoMj9nGUkl06efNLvbigBzpryktPXF0ZLBYCCm5FcW0HSuLiOkWLcEiT2BXjI
+    // &maxWidth=400
+    //photoReference에 입력하면 됨.
+    @GetMapping("/placePhoto")
+    public ResponseEntity<Map<String, Object>> getPlaceInfo(@RequestParam String photoReference, @RequestParam int maxWidth) {
+        Map<String, Object> response = new HashMap<>();
+
+
+        // Get Place Photo
+        try {
+            Resource photo = googlePlacesService.getPhoto(photoReference, maxWidth);
+            response.put("photo", photo.getURL().toString());
+        } catch (IOException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 
 
     @PostMapping("/directions")
