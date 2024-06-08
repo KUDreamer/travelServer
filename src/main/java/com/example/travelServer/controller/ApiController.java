@@ -148,7 +148,7 @@ public class ApiController {
         return response.getBody();
     }
 
-    //작성예시: http://localhost:8080/api/place-info?
+    //작성예시: http://localhost:8080/api/placePhoto?
     // photoReference=AUGGfZnSHjsfLCLJogZWwe5Jrfwae_VUhGDiYszJmPNNHzWQG58_HwAk122fH0FMhEcs1rz6Ny9cm_KgTbSW6_7g7B3t2KntyM7F53F-ElET4Tr3EzOPpYcfoMj9nGUkl06efNLvbigBzpryktPXF0ZLBYCCm5FcW0HSuLiOkWLcEiT2BXjI
     // &maxWidth=400
     //photoReference에 입력하면 됨.
