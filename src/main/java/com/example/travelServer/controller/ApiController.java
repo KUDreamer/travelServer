@@ -289,8 +289,8 @@ public class ApiController {
     }
 
 
-    //입력 예시:
-    //예제 요청 형식
+    //입력 예시:http://localhost:8080/api/directionsTime
+    //동봉되야 하는 json body 형식
 //    {
 //        "origin": {
 //        "address": "1600 Amphitheatre Parkway, Mountain View, CA"
@@ -309,6 +309,72 @@ public class ApiController {
 //        "travelMode": "DRIVE"
 //    }
 
+
+    //예상되는 반환값
+//    {
+//        "routes": [
+//        {
+//            "legs": [
+//            {
+//                "distanceMeters": 10449,
+//                    "duration": "946s",
+//                    "startLocation": {
+//                "latLng": {
+//                    "latitude": 37.423133199999995,
+//                            "longitude": -122.0847922
+//                }
+//            },
+//                "endLocation": {
+//                "latLng": {
+//                    "latitude": 37.4290519,
+//                            "longitude": -122.16941959999998
+//                }
+//            }
+//            },
+//            {
+//                "distanceMeters": 8382,
+//                    "duration": "1063s",
+//                    "startLocation": {
+//                "latLng": {
+//                    "latitude": 37.4290519,
+//                            "longitude": -122.16941959999998
+//                }
+//            },
+//                "endLocation": {
+//                "latLng": {
+//                    "latitude": 37.4780065,
+//                            "longitude": -122.2240697
+//                }
+//            }
+//            },
+//            {
+//                "distanceMeters": 46147,
+//                    "duration": "2235s",
+//                    "startLocation": {
+//                "latLng": {
+//                    "latitude": 37.4780065,
+//                            "longitude": -122.2240697
+//                }
+//            },
+//                "endLocation": {
+//                "latLng": {
+//                    "latitude": 37.7787698,
+//                            "longitude": -122.38780969999999
+//                }
+//            }
+//            }
+//      ],
+//            "distanceMeters": 64978,
+//                "duration": "4244s",
+//                "optimizedIntermediateWaypointIndex": [
+//            0,
+//                    1
+//      ]
+//        }
+//  ]
+//    }
+
+    //작성예시
     @PostMapping("/directionsTime")
     public String getDirectionsTime(@RequestBody Map<String, Object> request) {
         try {
