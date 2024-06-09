@@ -374,7 +374,7 @@ public class ApiController {
 //  ]
 //    }
 
-    //작성예시
+//optimizedIntermediateWaypointIndex 이 안에 담긴 인덱스 순서대로 최적화된 경로
     @PostMapping("/directionsTime")
     public String getDirectionsTime(@RequestBody Map<String, Object> request) {
         try {
