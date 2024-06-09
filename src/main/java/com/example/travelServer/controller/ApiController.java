@@ -2,6 +2,7 @@ package com.example.travelServer.controller;
 
 import com.example.travelServer.config.AppConfig;
 import com.example.travelServer.service.GooglePlacesService;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,10 +13,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -289,4 +287,78 @@ public class ApiController {
 
         return response.getBody();
     }
+
+
+    //입력 예시:
+    //예제 요청 형식
+//    {
+//        "origin": {
+//        "address": "1600 Amphitheatre Parkway, Mountain View, CA"
+//    },
+//        "destination": {
+//        "address": "24 Willie Mays Plaza, San Francisco, CA 94107"
+//    },
+//        "intermediates": [
+//        {
+//            "address": "450 Serra Mall, Stanford, CA 94305, USA"
+//        },
+//        {
+//            "address": "1836 El Camino Real, Redwood City, CA 94063"
+//        }
+//  ],
+//        "travelMode": "DRIVE"
+//    }
+
+    @PostMapping("/directionsTime")
+    public String getDirectionsTime(@RequestBody Map<String, Object> request) {
+        try {
+            String api_key = appConfig.getApiKey();
+            String url = "https://routes.googleapis.com/directions/v2:computeRoutes";
+
+            Map<String, Object> origin = (Map<String, Object>) request.get("origin");
+            Map<String, Object> destination = (Map<String, Object>) request.get("destination");
+            List<Map<String, Object>> intermediates = (List<Map<String, Object>>) request.get("intermediates");
+            String travelMode = (String) request.get("travelMode");
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+            headers.set("X-Goog-Api-Key", api_key);
+            //headers.set("X-Goog-FieldMask", "routes.duration,routes.distanceMeters,routes.legs.duration,routes.legs.distanceMeters");
+            headers.set("X-Goog-FieldMask", "routes.optimized_intermediate_waypoint_index,routes.duration,routes.distanceMeters,routes.legs.duration,routes.legs.distanceMeters,routes.legs.startLocation,routes.legs.endLocation");
+
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("origin", origin);
+            requestBody.put("destination", destination);
+            requestBody.put("travelMode", travelMode);
+            requestBody.put("optimizeWaypointOrder", true);
+
+            List<Map<String, Object>> intermediatePoints = intermediates.stream()
+                    .map(intermediate -> {
+                        Map<String, Object> point = new HashMap<>();
+                        if (intermediate.containsKey("address")) {
+                            point.put("address", intermediate.get("address"));
+                        } else if (intermediate.containsKey("location")) {
+                            point.put("location", intermediate.get("location"));
+                        }
+                        return point;
+                    })
+                    .collect(Collectors.toList());
+
+            requestBody.put("intermediates", intermediatePoints);
+
+            String jsonRequestBody = objectMapper.writeValueAsString(requestBody);
+
+            HttpEntity<String> entity = new HttpEntity<>(jsonRequestBody, headers);
+
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+
+            return response.getBody();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error occurred: " + e.getMessage();
+        }
+    }
+
 }
