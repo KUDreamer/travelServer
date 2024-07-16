@@ -10,3 +10,4 @@
 - 백엔드 1명 (본인)
 
 ## 순서도
+![afsf](https://github.com/user-attachments/assets/076d618f-d361-4141-9e90-879c14970e26)
