@@ -16,6 +16,11 @@
 <img width="908" alt="스크린샷 2024-05-01 오후 4 53 43" src="https://github.com/user-attachments/assets/358c9319-ae80-46f7-a60b-d4426adf1537">
 https://www.figma.com/file/aa6G3P58rvZYeNVtebawUP/산협프?type=design&t=OTGxexTaVwr9a2lJ-6
 
+## 사용 기술 및 개발 환경
+- Framework : Spring boot
+- Language : Java
+- Tool : Intellij, Github, 
+
 ## 백엔드 API 구조
 위 코드는 Spring Boot를 사용하여 Google Maps API와 연동하는 컨트롤러입니다. 각 함수의 기능을 정의하면 다음과 같습니다:
 
